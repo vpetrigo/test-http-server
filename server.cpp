@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdexcept>
 #include <cassert>
@@ -65,6 +66,39 @@ private:
 };
 
 class HTTP_Server {
+private:
+  struct Parser_Req {
+    // now there is only GET requests handling
+    static void parse_request(uv_work_t *req) {
+      std::cout << "Parsing..." << std::endl;
+      std::string method;
+      std::string path;
+      std::string protocol;
+      char *data = static_cast<char *> (req->data);
+      std::istringstream iss{data};
+      
+      // get request type
+      iss >> method;
+      std::cout << "Method: " << method << std::endl;
+      assert(method == "GET" && "Request type is not supported yet");
+      // get path with query request
+      iss >> path;
+      get_query(path);
+      std::cout << "Path: " << path << std::endl;
+      iss >> protocol;
+      std::cout << "Protocol: " << protocol << std::endl;
+    }
+    
+    static std::string get_query(std::string& path) {
+      constexpr char query_break = '?';
+      std::size_t path_offset = path.find_first_of(query_break);
+      std::string query = path.substr(path_offset);
+      
+      path.erase(path.begin() + path_offset, path.end());
+      
+      return query;
+    }
+  };
 public:
   HTTP_Server(uv_loop_t * const loop, const Server_Parameters& sp) {
     assert(loop != nullptr);
@@ -72,7 +106,7 @@ public:
     constexpr int keep_alive_delay = 60;
     int status = uv_ip4_addr(sp.ip.c_str(), sp.port, &sin);
     
-    assert(status == 0);
+    assert(status == 0 && "Cannot convert incomin IP and port into sockaddr_in");
     status = uv_tcp_init(loop, &server_handle);
     assert(status == 0);
     status = uv_tcp_keepalive(&server_handle, true, keep_alive_delay);
@@ -89,6 +123,7 @@ private:
   uv_loop_t *loop;
   uv_tcp_t server_handle;
   std::string server_directory;
+  Parser_Req req_parser;
   
   static void on_connect(uv_stream_t *server, int status) {
     /* TODO: accept client connection */
@@ -100,11 +135,13 @@ private:
     assert(status == 0);
     client_stream->data = incoming_conn;
     status = uv_accept(server, reinterpret_cast<uv_stream_t *> (client_stream));
-    assert(status == 0);
+    assert(status == 0 && "Cannot accept incoming connection");
     status = uv_read_start(reinterpret_cast<uv_stream_t *> (client_stream), alloc_buffer, on_read);
+    assert(status == 0 && "Cannot start reading");
   }
   
   static void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t* buf) {
+    std::cout << "Buf init" << std::endl;
     *buf = uv_buf_init(new char[suggested_size], suggested_size);
   }
   
@@ -112,26 +149,34 @@ private:
     if (nread >= 0) {
       // get HTTP request and parse it
       std::cout << buf->base << std::endl;
+      uv_work_t *parse_work = new uv_work_t;
+      
+      parse_work->data = buf->base;
+      int status = uv_queue_work(client->loop, parse_work, Parser_Req::parse_request, send_response);
+      assert(status == 0);
     }
     else {
       // closed session or error happened
-      uv_shutdown_t *shutdown_req = new uv_shutdown_t;
+      uv_shutdown_t shutdown_req;
       
-      uv_shutdown(shutdown_req, client, on_shutdown);
+      uv_shutdown(&shutdown_req, client, on_shutdown);
+      delete buf->base;
     }
-    delete buf->base;
   }
   
   static void on_shutdown(uv_shutdown_t *req, int status) {
     assert(status == 0);
     uv_close(reinterpret_cast<uv_handle_t *> (req->handle), on_close);
-    delete req;
   }
   
   static void on_close(uv_handle_t *handle) {
     HTTP_Client *client = reinterpret_cast<HTTP_Client *> (handle->data);
     
     delete client;
+  }
+  
+  static void send_response(uv_work_t* req, int status) {
+    
   }
 };
 
