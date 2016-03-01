@@ -23,7 +23,7 @@ constexpr auto Content_Length = "Content-Length: ";
 constexpr auto MIME_text_html = "Content-Type: text/html; charset=utf-8";
 
 class Server_Parameters {
-public:
+ public:
   Server_Parameters() {}
 
   Server_Parameters(int argc, char *argv[], std::string &&s) {
@@ -38,19 +38,19 @@ public:
     // 'd': server dir
     while ((option = getopt(argc, argv, s.c_str())) != getopt_finished) {
       switch (option) {
-      case 'h':
-        ip = optarg;
-        break;
-      case 'p':
-        port = std::stoi(optarg);
-        break;
-      case 'd':
-        /* TODO: add check for directory availability */
-        directory = optarg;
-        break;
-      default:
-        /* TODO: handle wrong arguments somehow */
-        break;
+        case 'h':
+          ip = optarg;
+          break;
+        case 'p':
+          port = std::stoi(optarg);
+          break;
+        case 'd':
+          /* TODO: add check for directory availability */
+          directory = optarg;
+          break;
+        default:
+          /* TODO: handle wrong arguments somehow */
+          break;
       }
     }
   }
@@ -64,12 +64,12 @@ public:
 };
 
 class HTTP_Client {
-public:
+ public:
   HTTP_Client(const std::string &rd) : root_directory{rd} {}
 
   const std::string &root_directory;
 
-private:
+ private:
   uv_tcp_t client_handle;
 
   // we need HTTP server to have access to client handle for initializing it
@@ -77,7 +77,7 @@ private:
 };
 
 class HTTP_Server {
-private:
+ private:
   struct Parser_Req {
     Parser_Req(const std::string &rd, char *d, uv_stream_t *cs)
         : root_dir{rd}, req_data{d}, client_s{cs} {}
@@ -168,7 +168,7 @@ private:
     std::string response;
   };
 
-public:
+ public:
   HTTP_Server(uv_loop_t *const loop, const Server_Parameters &sp)
       : server_directory{sp.directory} {
     assert(loop != nullptr);
@@ -194,7 +194,7 @@ public:
   HTTP_Server(const HTTP_Server &serv) = delete;
   HTTP_Server &operator=(const HTTP_Server &serv) = delete;
 
-private:
+ private:
   uv_tcp_t server_handle;
   std::string server_directory;
 
