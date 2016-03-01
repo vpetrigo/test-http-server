@@ -44,7 +44,7 @@ ExternalProject_Add_Step(
 endif()
 
 include_directories(deps/libuv/include)
-link_directories(${PROJECT_SOURCE_DIR}/deps/libuv ${PROJECT_SOURCE_DIR}/ddeps/libuv/output/lib)
+link_directories(${PROJECT_SOURCE_DIR}/deps/libuv ${PROJECT_SOURCE_DIR}/deps/libuv/output/lib)
 
 add_executable(final server.cpp)
 target_link_libraries(final uv)
