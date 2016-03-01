@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <cassert>
 #include <vector>
+#include <iterator>
+#include <iomanip>
 // system headers
 #include <unistd.h>
 #include <sys/types.h>
@@ -148,8 +150,17 @@ class HTTP_Server {
             << MIME_text_html << std::endl;
         oss << Connection_Close << std::endl << std::endl;
       } else {
-        oss << protocol << HTTP_200 << std::endl << MIME_text_html << std::endl;
-        oss << Connection_Close << std::endl << std::endl;
+        std::ifstream ifs{path};
+        // we have to save original punctuation and spacing :)
+        ifs >> std::noskipws;
+        std::string s{std::istream_iterator<char>{ifs},
+                      std::istream_iterator<char>{}};
+        oss << protocol << " " << HTTP_200 << std::endl
+            << MIME_text_html << std::endl;
+        oss << Connection_Close << std::endl
+            << Content_Length << s.size() << std::endl
+            << std::endl;
+        oss << std::noskipws << s;
       }
 
       response = oss.str();
