@@ -6,6 +6,7 @@
 #include <vector>
 #include <iterator>
 #include <iomanip>
+#include <csignal>
 // system headers
 #include <unistd.h>
 #include <sys/types.h>
@@ -291,6 +292,10 @@ class HTTP_Server {
 };
 
 int main(int argc, char *argv[]) {
+  signal(SIGHUP, SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
+  
+  daemon(0, 0);
   uv_loop_t *loop = uv_default_loop();
   Server_Parameters sp(argc, argv, "h:p:d:");
   HTTP_Server server(loop, sp);
