@@ -29,7 +29,7 @@ elseif(${UNIX})
         CONFIGURE_COMMAND ./autogen.sh
         BUILD_IN_SOURCE 1
         BUILD_COMMAND ${MAKE_CMD} 
-        INSTALL_COMMAND gmake install
+        INSTALL_COMMAND ${MAKE_CMD} install
     )
 
 ExternalProject_Add_Step(
