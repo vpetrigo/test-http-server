@@ -4,6 +4,12 @@ project(new-http-server)
 include(ExternalProject)
 find_package(Threads)
 
+if(${CMAKE_SYSTEM_HOST_NAME} STREQUAL "FreeBSD")
+    set(MAKE_CMD gmake)
+else()
+    set(MAKE_CMD make)
+endif()
+
 if(${MINGW})
     ExternalProject_Add(
         libuv
@@ -22,7 +28,7 @@ elseif(${UNIX})
         UPDATE_COMMAND git submodule update
         CONFIGURE_COMMAND ./autogen.sh
         BUILD_IN_SOURCE 1
-        BUILD_COMMAND gmake 
+        BUILD_COMMAND ${MAKE_CMD} 
         INSTALL_COMMAND gmake install
     )
 
