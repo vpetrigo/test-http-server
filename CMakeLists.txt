@@ -4,7 +4,7 @@ project(new-http-server)
 include(ExternalProject)
 find_package(Threads)
 
-if(${CMAKE_SYSTEM_HOST_NAME} STREQUAL "FreeBSD")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
     set(MAKE_CMD gmake)
 else()
     set(MAKE_CMD make)
