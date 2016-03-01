@@ -18,7 +18,8 @@ elseif(${UNIX})
     ExternalProject_Add(
         libuv
         SOURCE_DIR ${PROJECT_SOURCE_DIR}/deps/libuv
-        DOWNLOAD_COMMAND git submodule update
+        DOWNLOAD_COMMAND git submodule init
+        UPDATE_COMMAND git submodule update
         CONFIGURE_COMMAND ./autogen.sh
         BUILD_IN_SOURCE 1
         BUILD_COMMAND gmake 
